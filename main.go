@@ -52,7 +52,7 @@ func getRecommendations(ctx context.Context) ([]string, error) {
 		ctx,
 		driver,
 		`
-		MATCH (n)-[]-()
+		MATCH (n)
 		WITH n, rand() AS r
 		ORDER BY r
 		LIMIT 1
