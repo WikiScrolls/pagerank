@@ -17,7 +17,7 @@ type Article struct {
 	Id           string `json:"id"`
 	Title        string `json:"title"`
 	WikipediaUrl string `json:"wikipediaUrl"`
-	Summary      string `json:"summary"`
+	Content      string `json:"content"`
 }
 
 type WikipediaResponse struct {
@@ -111,10 +111,20 @@ func main() {
 		ctx := context.Background()
 		articles, err := getArticles(ctx)
 		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
+			c.JSON(500, gin.H{
+				"success": false,
+				"message": err.Error(),
+			})
 			return
 		}
-		c.JSON(200, gin.H{"recommendations": articles})
+
+		c.JSON(200, gin.H{
+			"success": true,
+			"message": "OK",
+			"data": gin.H{
+				"articles": articles,
+			},
+		})
 	})
 
 	router.Run(":8080")
