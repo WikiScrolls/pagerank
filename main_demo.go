@@ -2,59 +2,119 @@ package main
 
 import (
 	"context"
-	"math/rand"
-	"strings"
-	"time"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
-var demoRecommendations = [][]string{
-	{"'Uwe_Ludwig'", "'Dentistry_in_Saint_Lucia'", "'Japan'", "'Kyrgyzstan_Sweden_relations'"},
-	{"'Laurier_Regnier'", "'The_New_Barbarians_(band'", "'Sahare,_Surkhet'", "'The_Rolling_Stones:_Voodoo_Lounge_Live'"},
-	{"'Homoserine_Lactone'", "'Beijing_Municipal_No._2_Prison'", "'November_criminal'", "'List_of_prisons_in_Anhui'"},
-	{"'Tre_Colli'", "'Orthonama_inconspicua'", "'Daylight_saving_time'", "'Missjonmuseet'"},
-	{"'NCAA_Season_58'", "'Pekanbaru_United_F.C.'", "'Wayback_Machine'", "'Labib_Ittihadul'"},
-	{"'James_Whitley_(alpine_skier'", "'Subhash_Ola'", "'China'", "'Vicinity_Above_Charlevoix'"},
-	{"'Geoff_Vowden'", "'Judges_Lodgings,_Lancaster'", "'ISBN_(identifier'", "'Éric_Chevillard'"},
-	{"'Julie_Lambert'", "'Istočni_Grijeh'", "'Wayback_Machine'", "'Ruslan_Gagloyev'"},
+type Article struct {
+	Id           string `json:"id"`
+	Title        string `json:"title"`
+	WikipediaUrl string `json:"wikipediaUrl"`
+	Summary      string `json:"summary"`
 }
 
-func formatToWikiLink(title string) string {
-	clean := strings.Trim(title, "'")
-	clean = strings.ReplaceAll(clean, " ", "_")
-	link := "https://en.wikipedia.org/wiki/" + clean
-	if strings.Contains(link, "(") {
-		link += ")"
-	}
-	return link
+type WikipediaResponse struct {
+	Continue struct {
+		Excontinue  int    `json:"excontinue"`
+		Grncontinue string `json:"grncontinue"`
+		Continue    string `json:"continue"`
+	} `json:"continue"`
+
+	Query struct {
+		Pages map[string]Page `json:"pages"`
+	} `json:"query"`
 }
 
-func getRecommendations(ctx context.Context) ([]string, error) {
+type Page struct {
+	PageID           int    `json:"pageid"`
+	Ns               int    `json:"ns"`
+	Title            string `json:"title"`
+	Extract          string `json:"extract,omitempty"`
+	ContentModel     string `json:"contentmodel"`
+	PageLanguage     string `json:"pagelanguage"`
+	PageLanguageHTML string `json:"pagelanguagehtmlcode"`
+	PageLanguageDir  string `json:"pagelanguagedir"`
+	Touched          string `json:"touched"`
+	LastRevID        int    `json:"lastrevid"`
+	Length           int    `json:"length"`
+	FullURL          string `json:"fullurl"`
+	EditURL          string `json:"editurl"`
+	CanonicalURL     string `json:"canonicalurl"`
+}
 
-	titlesArr := demoRecommendations[rand.Intn(len(demoRecommendations))]
+func unMarshalArticles(jsonRaw []byte) ([]Article, error) {
+	wikiResponse := WikipediaResponse{}
+	json.Unmarshal(jsonRaw, &wikiResponse)
 
-	var links []string
-	for _, title := range titlesArr {
-		links = append(links, formatToWikiLink(title))
+	var articles []Article
+	for _, page := range wikiResponse.Query.Pages {
+		articles = append(articles, Article{
+			strconv.Itoa(page.PageID), page.Title, page.FullURL, page.Extract,
+		})
 	}
 
-	return links, nil
+	return articles, nil
+}
+
+func getArticles(ctx context.Context) ([]Article, error) {
+	params := url.Values{
+		"action":       {"query"},
+		"format":       {"json"},
+		"generator":    {"random"},
+		"grnnamespace": {"0"},
+		"grnlimit":     {"20"},
+		"prop":         {"extracts|info"},
+		"inprop":       {"url"},
+		"exintro":      {"1"},
+		"exlimit":      {"max"},
+		"exsentences":  {"10"},
+		"explaintext":  {"1"},
+		"origin":       {"*"},
+		"variant":      {"en"},
+	}
+
+	reqURL := "https://en.wikipedia.org/w/api.php?" + params.Encode()
+
+	fmt.Printf("URL: %s\n", reqURL)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("User-Agent", "WikiScrolls/1.0 (; nadzhiff@gmail.com) Go-http-client/1.1")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic("Failed to fetch http")
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+
+	os.WriteFile("res.json", body, 0644)
+
+	// return nil, nil
+	return unMarshalArticles(body)
 }
 
 func main() {
-	rand.Seed(time.Now().Unix())
-
 	router := gin.Default()
 
 	router.GET("/recommendations", func(c *gin.Context) {
 		ctx := context.Background()
-		links, err := getRecommendations(ctx)
+		articles, err := getArticles(ctx)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(200, gin.H{"recommendations": links})
+		c.JSON(200, gin.H{"recommendations": articles})
 	})
 
 	router.Run(":8080")
