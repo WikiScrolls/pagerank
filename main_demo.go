@@ -18,6 +18,7 @@ type Article struct {
 	Title        string `json:"title"`
 	WikipediaUrl string `json:"wikipediaUrl"`
 	Content      string `json:"content"`
+	Thumbnail    string `json:"thumbnail"`
 }
 
 type WikipediaResponse struct {
@@ -47,6 +48,11 @@ type Page struct {
 	FullURL          string `json:"fullurl"`
 	EditURL          string `json:"editurl"`
 	CanonicalURL     string `json:"canonicalurl"`
+	Thumbnail        struct {
+		Source string `json:"source"`
+		Width  int    `json:"width"`
+		Height int    `json:"height"`
+	} `json:"thumbnail"`
 }
 
 func unMarshalArticles(jsonRaw []byte) ([]Article, error) {
@@ -56,7 +62,7 @@ func unMarshalArticles(jsonRaw []byte) ([]Article, error) {
 	var articles []Article
 	for _, page := range wikiResponse.Query.Pages {
 		articles = append(articles, Article{
-			strconv.Itoa(page.PageID), page.Title, page.FullURL, page.Extract,
+			strconv.Itoa(page.PageID), page.Title, page.FullURL, page.Extract, page.Thumbnail.Source,
 		})
 	}
 
@@ -70,7 +76,7 @@ func getArticles(ctx context.Context) ([]Article, error) {
 		"generator":    {"random"},
 		"grnnamespace": {"0"},
 		"grnlimit":     {"20"},
-		"prop":         {"extracts|info"},
+		"prop":         {"extracts|info|pageimages"},
 		"inprop":       {"url"},
 		"exintro":      {"1"},
 		"exlimit":      {"max"},
@@ -78,6 +84,8 @@ func getArticles(ctx context.Context) ([]Article, error) {
 		"explaintext":  {"1"},
 		"origin":       {"*"},
 		"variant":      {"en"},
+		"piprop":       {"thumbnail"},
+		"pithumbsize":  {"800"},
 	}
 
 	reqURL := "https://en.wikipedia.org/w/api.php?" + params.Encode()
