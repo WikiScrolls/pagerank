@@ -12,6 +12,7 @@ func (a *App) Routes(router *gin.Engine) {
 		{
 			h := handler.NewRecommendationHandler(&a.RecommendationService)
 			recommendation.GET("/", h.GetRecommendations)
+			recommendation.GET("/random", h.GetRecommendations)
 		}
 	}
 }
