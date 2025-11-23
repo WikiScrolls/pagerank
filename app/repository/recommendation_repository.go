@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
@@ -20,18 +21,21 @@ func NewNeo4jRecommendationRepository(driver neo4j.DriverWithContext) *Neo4jReco
 }
 
 func (r *Neo4jRecommendationRepository) GetRecommendationTitles(ctx context.Context, chainLength int) ([]string, error) {
-	result, err := neo4j.ExecuteQuery(ctx, r.driver,
+	query := fmt.Sprintf(
 		`
 		MATCH (n)
 		WITH n, rand() AS r
 		ORDER BY r
 		LIMIT 1
-		MATCH p = (n)-[*1..$chainLength]-(m)
+		MATCH p = (n)-[*1..%d]-(m)
 		WITH p, rand() AS r2
 		ORDER BY r2
 		LIMIT 1
 		RETURN [x IN nodes(p) | x.title] AS pathTitles
-		`,
+		`, chainLength)
+
+	result, err := neo4j.ExecuteQuery(ctx, r.driver,
+		query,
 		map[string]any{
 			"chainLength": chainLength,
 		},

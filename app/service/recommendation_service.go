@@ -58,6 +58,9 @@ func (s *RecommendationService) GetRandomArticles(ctx context.Context, articleCo
 func wikipediaResponseToArticles(wikipediaResponse *model.WikipediaResponse) []model.Article {
 	var articles []model.Article
 	for _, page := range wikipediaResponse.Query.Pages {
+		if page.Extract == "" {
+			continue
+		}
 		articles = append(articles, model.Article{
 			Id:           strconv.Itoa(page.PageID),
 			Title:        page.Title,
