@@ -28,7 +28,7 @@ func (h *RecommendationHandler) GetRecommendations(c *gin.Context) {
 }
 
 func (h *RecommendationHandler) GetRandomArticles(c *gin.Context) {
-	articles, err := h.serv.GetRandomArticles(c.Request.Context(), 3)
+	articles, err := h.serv.GetRandomArticles(c.Request.Context(), 20)
 	if err != nil {
 		c.JSON(500, gin.H{
 			"error": err,
