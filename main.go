@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/WikiScrolls/pagerank/app"
@@ -23,4 +24,5 @@ func main() {
 	app.Routes(router)
 
 	router.Run(":" + cfg.AppPort)
+	fmt.Println("Pagerank Running on Port :" + cfg.AppPort)
 }
