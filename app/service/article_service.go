@@ -27,7 +27,7 @@ func (s *ArticleService) LikeArticle(ctx context.Context, userId string, itemId 
 
 func (s *ArticleService) OpenArticle(ctx context.Context, userId string, itemId string) error {
 	_, err := s.gorse.InsertFeedback(ctx, []g.Feedback{{
-		FeedbackType: "open-article", UserId: userId, ItemId: itemId, Value: 1.0, Timestamp: time.Now(),
+		FeedbackType: "open_article", UserId: userId, ItemId: itemId, Value: 1.0, Timestamp: time.Now(),
 	}})
 
 	return err

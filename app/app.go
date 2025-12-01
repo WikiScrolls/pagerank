@@ -11,6 +11,7 @@ import (
 type App struct {
 	RecommendationService service.RecommendationService
 	ArticleService        service.ArticleService
+	UserService           service.UserService
 }
 
 func New(cfg *config.Config) (*App, error) {
@@ -24,6 +25,9 @@ func New(cfg *config.Config) (*App, error) {
 			gorseClient,
 		),
 		ArticleService: *service.NewArticleService(
+			gorseClient,
+		),
+		UserService: *service.NewUserService(
 			gorseClient,
 		),
 	}, nil
