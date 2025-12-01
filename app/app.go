@@ -10,16 +10,20 @@ import (
 
 type App struct {
 	RecommendationService service.RecommendationService
+	ArticleService        service.ArticleService
 }
 
 func New(cfg *config.Config) (*App, error) {
 
 	wikiClient := client.NewWikipediaClient()
-	gorseClient := gorse.NewGorseClient("http://localhost:8088", "")
+	gorseClient := gorse.NewGorseClient(cfg.GorseURL, cfg.GorseKey)
 
 	return &App{
 		RecommendationService: *service.NewRecommendationService(
 			wikiClient,
+			gorseClient,
+		),
+		ArticleService: *service.NewArticleService(
 			gorseClient,
 		),
 	}, nil

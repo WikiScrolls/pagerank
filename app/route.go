@@ -15,11 +15,11 @@ func (a *App) Routes(router *gin.Engine) {
 			recommendation.GET("/random", h.GetRandomArticles)
 		}
 
-		artice := api.Group("/articles/:id")
+		article := api.Group("/articles/:id")
 		{
-			h := handler.NewRecommendationHandler(&a.RecommendationService)
-			recommendation.GET("/:userId", h.GetRecommendations)
-			recommendation.GET("/random", h.GetRandomArticles)
+			h := handler.NewArticleHandler(&a.ArticleService)
+			article.POST("/like", h.LikeArticle)
+			article.POST("/open", h.OpenArticle)
 		}
 	}
 }
