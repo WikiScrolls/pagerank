@@ -14,7 +14,9 @@ func NewRecommendationHandler(serv *service.RecommendationService) *Recommendati
 }
 
 func (h *RecommendationHandler) GetRecommendations(c *gin.Context) {
-	articles, err := h.serv.GetRecommendations(c.Request.Context(), 3)
+	userId := c.Param("userId")
+
+	articles, err := h.serv.GetRecommendations(c.Request.Context(), 10, userId)
 
 	if err != nil {
 		c.JSON(500, gin.H{
@@ -28,7 +30,7 @@ func (h *RecommendationHandler) GetRecommendations(c *gin.Context) {
 }
 
 func (h *RecommendationHandler) GetRandomArticles(c *gin.Context) {
-	articles, err := h.serv.GetRandomArticles(c.Request.Context(), 20)
+	articles, err := h.serv.GetRandomArticles(c.Request.Context(), 10)
 	if err != nil {
 		c.JSON(500, gin.H{
 			"error": err,
