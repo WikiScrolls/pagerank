@@ -25,7 +25,7 @@ func (a *App) Routes(router *gin.Engine) {
 		user := api.Group("/user")
 		{
 			h := handler.NewUserHandler(&a.UserService)
-			user.POST("/", h.RegisterUser) // Register user to recommender with format {"id": userId, "interests": {"interest1", "interest2", ...}}
+			user.POST("/", h.RegisterUser) // Register user to recommender with format {"id": userId, "interests": ["interest1", "interest2", ...]}
 		}
 	}
 }
