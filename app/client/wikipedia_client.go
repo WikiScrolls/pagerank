@@ -86,6 +86,40 @@ func (w *WikipediaClient) FetchByTitles(ctx context.Context, titles []string) (*
 	return unMarshalWikipediaResponse(body)
 }
 
+func (w *WikipediaClient) FetchByIDs(ctx context.Context, ids []string) (*model.WikipediaResponse, error) {
+	if len(ids) == 0 {
+		return nil, errors.New("no ids given")
+	}
+
+	var idParam string = ids[0]
+	for i := 1; i < len(ids); i++ {
+		idParam += "|" + ids[i]
+	}
+
+	params := url.Values{
+		"action":      {"query"},
+		"format":      {"json"},
+		"prop":        {"extracts|info|pageimages"},
+		"inprop":      {"url"},
+		"exintro":     {"1"},
+		"exlimit":     {"max"},
+		"exsentences": {"10"},
+		"explaintext": {"1"},
+		"origin":      {"*"},
+		"variant":     {"en"},
+		"piprop":      {"thumbnail"},
+		"pithumbsize": {"800"},
+		"pageids":     {idParam},
+	}
+
+	body, err := w.fetchWikipedia(ctx, params.Encode())
+	if err != nil {
+		return nil, err
+	}
+
+	return unMarshalWikipediaResponse(body)
+}
+
 func (w *WikipediaClient) fetchWikipedia(ctx context.Context, params string) ([]byte, error) {
 	reqURL := "https://en.wikipedia.org/w/api.php?" + params
 

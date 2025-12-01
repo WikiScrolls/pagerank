@@ -14,7 +14,9 @@ func NewRecommendationHandler(serv *service.RecommendationService) *Recommendati
 }
 
 func (h *RecommendationHandler) GetRecommendations(c *gin.Context) {
-	articles, err := h.serv.GetRecommendations(c.Request.Context(), 3)
+	userId := c.Param("userId")
+
+	articles, err := h.serv.GetRecommendations(c.Request.Context(), 10, userId)
 
 	if err != nil {
 		c.JSON(500, gin.H{
