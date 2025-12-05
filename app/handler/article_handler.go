@@ -46,3 +46,25 @@ func (h *ArticleHandler) OpenArticle(c *gin.Context) {
 		})
 	}
 }
+
+func (h *ArticleHandler) SearchArticles(c *gin.Context) {
+	keyword := c.Query("keyword")
+	if keyword == "" {
+		c.JSON(400, gin.H{
+			"error": "Keyword cannot be empty.",
+		})
+		return
+	}
+
+	articles, err := h.serv.SearchArticles(c.Request.Context(), keyword)
+
+	if err != nil {
+		c.JSON(500, gin.H{
+			"error": err,
+		})
+	} else {
+		c.JSON(200, gin.H{
+			"data": articles,
+		})
+	}
+}

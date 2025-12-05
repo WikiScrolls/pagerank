@@ -26,6 +26,7 @@ func New(cfg *config.Config) (*App, error) {
 		),
 		ArticleService: *service.NewArticleService(
 			gorseClient,
+			wikiClient,
 		),
 		UserService: *service.NewUserService(
 			gorseClient,

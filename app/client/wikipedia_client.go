@@ -33,7 +33,6 @@ func (w *WikipediaClient) GetRandomArticles(ctx context.Context, articleCount in
 		"grnnamespace": {"0"},
 		"grnlimit":     {strconv.Itoa(articleCount)},
 		"prop":         {"extracts|info|pageimages"},
-		"inprop":       {"url"},
 		"exintro":      {"1"},
 		"exlimit":      {"max"},
 		"exsentences":  {"10"},
@@ -66,7 +65,6 @@ func (w *WikipediaClient) FetchByTitles(ctx context.Context, titles []string) (*
 		"action":      {"query"},
 		"format":      {"json"},
 		"prop":        {"extracts|info|pageimages"},
-		"inprop":      {"url"},
 		"exintro":     {"1"},
 		"exlimit":     {"max"},
 		"exsentences": {"10"},
@@ -84,6 +82,23 @@ func (w *WikipediaClient) FetchByTitles(ctx context.Context, titles []string) (*
 	}
 
 	return unMarshalWikipediaResponse(body)
+}
+
+func (w *WikipediaClient) FetchBySearch(ctx context.Context, search string) (*model.WikipediaSearch, error) {
+	params := url.Values{
+		"action":   {"query"},
+		"format":   {"json"},
+		"list":     {"search"},
+		"srprop":   {""},
+		"srsearch": {search},
+	}
+
+	body, err := w.fetchWikipedia(ctx, params.Encode())
+	if err != nil {
+		return nil, err
+	}
+
+	return unMarshalWikipediaSearch(body)
 }
 
 func (w *WikipediaClient) FetchByIDs(ctx context.Context, ids []string) (*model.WikipediaResponse, error) {
@@ -142,4 +157,10 @@ func unMarshalWikipediaResponse(jsonRaw []byte) (*model.WikipediaResponse, error
 	wikiResponse := model.WikipediaResponse{}
 	json.Unmarshal(jsonRaw, &wikiResponse)
 	return &wikiResponse, nil
+}
+
+func unMarshalWikipediaSearch(jsonRaw []byte) (*model.WikipediaSearch, error) {
+	wikiSearch := model.WikipediaSearch{}
+	json.Unmarshal(jsonRaw, &wikiSearch)
+	return &wikiSearch, nil
 }
