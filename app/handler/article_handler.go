@@ -68,3 +68,25 @@ func (h *ArticleHandler) SearchArticles(c *gin.Context) {
 		})
 	}
 }
+
+func (h *ArticleHandler) GetArticleSummary(c *gin.Context) {
+	articleId := c.Param("id")
+	if articleId == "" {
+		c.JSON(400, gin.H{
+			"error": "Title cannot be empty.",
+		})
+		return
+	}
+
+	summary, err := h.serv.GetArticleSummary(c.Request.Context(), articleId)
+
+	if err != nil {
+		c.JSON(500, gin.H{
+			"error": err,
+		})
+	} else {
+		c.JSON(200, gin.H{
+			"data": summary,
+		})
+	}
+}

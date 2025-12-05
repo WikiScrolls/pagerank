@@ -18,6 +18,10 @@ func New(cfg *config.Config) (*App, error) {
 
 	wikiClient := client.NewWikipediaClient()
 	gorseClient := gorse.NewGorseClient(cfg.GorseURL, cfg.GorseKey)
+	geminiClient, err := client.NewGeminiClient(cfg.APIKey)
+	if err != nil {
+		return nil, err
+	}
 
 	return &App{
 		RecommendationService: *service.NewRecommendationService(
@@ -27,6 +31,7 @@ func New(cfg *config.Config) (*App, error) {
 		ArticleService: *service.NewArticleService(
 			gorseClient,
 			wikiClient,
+			geminiClient,
 		),
 		UserService: *service.NewUserService(
 			gorseClient,

@@ -18,9 +18,10 @@ func (a *App) Routes(router *gin.Engine) {
 		article := api.Group("/articles")
 		{
 			h := handler.NewArticleHandler(&a.ArticleService)
-			article.GET("/search", h.SearchArticles) // Search and return articles by ?keyword
-			article.POST("/:id/like", h.LikeArticle) // Like article id for user ?userId
-			article.POST("/:id/open", h.OpenArticle) // Open article id for user ?userId
+			article.GET("/search", h.SearchArticles)         // Search and return articles by ?keyword
+			article.GET("/:id/summary", h.GetArticleSummary) // Summarize article id with AI
+			article.POST("/:id/like", h.LikeArticle)         // Like article id for user ?userId
+			article.POST("/:id/open", h.OpenArticle)         // Open article id for user ?userId
 		}
 
 		user := api.Group("/user")

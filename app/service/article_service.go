@@ -10,16 +10,17 @@ import (
 )
 
 type ArticleService struct {
-	gorse *g.GorseClient
-	wiki  *client.WikipediaClient
+	gorse  *g.GorseClient
+	wiki   *client.WikipediaClient
+	gemini *client.GeminiClient
 }
 
 func NewArticleService(
 	gorse *g.GorseClient,
 	wiki *client.WikipediaClient,
-
+	gemini *client.GeminiClient,
 ) *ArticleService {
-	return &ArticleService{gorse: gorse, wiki: wiki}
+	return &ArticleService{gorse: gorse, wiki: wiki, gemini: gemini}
 }
 
 func (s *ArticleService) LikeArticle(ctx context.Context, userId string, itemId string) error {
@@ -55,4 +56,18 @@ func (s *ArticleService) SearchArticles(ctx context.Context, search string) ([]m
 	}
 
 	return wikipediaResponseToArticles(wikiResponse), nil
+}
+
+func (s *ArticleService) GetArticleSummary(ctx context.Context, articleId string) (string, error) {
+	article, err := s.wiki.FetchArticleRaw(ctx, articleId)
+	if err != nil || article == "" {
+		return "", nil
+	}
+
+	summary, err := s.gemini.SummarizeWiki(article)
+	if err != nil {
+		return "", nil
+	}
+
+	return summary, nil
 }

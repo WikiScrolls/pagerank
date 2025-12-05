@@ -135,6 +135,34 @@ func (w *WikipediaClient) FetchByIDs(ctx context.Context, ids []string) (*model.
 	return unMarshalWikipediaResponse(body)
 }
 
+func (w *WikipediaClient) FetchArticleRaw(ctx context.Context, articleId string) (string, error) {
+	params := url.Values{
+		"action": {"raw"},
+		"curid":  {articleId},
+	}
+
+	reqURL := "https://en.wikipedia.org/w/index.php?" + params.Encode()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("User-Agent", "WikiScrolls/1.0 (; nadzhiff@gmail.com) Go-http-client/1.1")
+
+	resp, err := w.httpClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	article, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", nil
+	}
+
+	return string(article), nil
+}
+
 func (w *WikipediaClient) fetchWikipedia(ctx context.Context, params string) ([]byte, error) {
 	reqURL := "https://en.wikipedia.org/w/api.php?" + params
 
